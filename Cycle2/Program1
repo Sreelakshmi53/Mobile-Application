@@ -1,0 +1,199 @@
+XML CODE:
+  <LinearLayout
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical">
+  
+      <EditText
+          android:id="@+id/usernameEditText"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:hint="Username" />
+  
+      <EditText
+          android:id="@+id/emailEditText"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:hint="Email" />
+  
+      <EditText
+          android:id="@+id/passwordEditText"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:hint="Password"
+          android:inputType="textPassword" />
+  
+      <Button
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Register"
+          android:onClick="register" />
+  
+  </LinearLayout>
+
+  JAVA CODE:
+    import android.annotation.TargetApi;
+  import android.os.Build;
+  import android.support.annotation.RequiresApi;
+  import android.support.v7.app.AppCompatActivity;
+  import android.os.Bundle;
+  import android.view.View;
+  import android.webkit.JavascriptInterface;
+  import android.webkit.WebView;
+  import android.widget.Button;
+  import android.widget.GridLayout;
+  import android.widget.TextView;
+  
+  public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+      private TextView textView;
+      private String currentInput = "";
+      private String operator = "";
+      private double firstOperand = 0;
+      private double secondOperand = 0;
+      private boolean isNewInput = true;
+      @Override
+      protected void onCreate(Bundle savedInstanceState) {
+          super.onCreate(savedInstanceState);
+          setContentView(R.layout.activity_main);
+          textView = findViewById(R.id.textView);
+          GridLayout gridLayout = findViewById(R.id.gridLayout);
+          String[] buttonLabels = {
+                  "7", "8", "9", "/",
+                  "4", "5", "6", "*",
+                  "1", "2", "3", "-",
+                  "C", "0", "=", "+"
+          };
+          for (String label : buttonLabels) {
+              Button button = new Button(this);
+              button.setText(label);
+              button.setTextSize(24);
+              button.setOnClickListener(this);
+              gridLayout.addView(button);
+          }
+      }
+      @TargetApi(Build.VERSION_CODES.KITKAT)
+      @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+      @Override
+      public void onClick(View v) {
+          Button button = (Button) v;
+          String buttonText = button.getText().toString();
+          switch (buttonText) {
+              case "=":
+                  calculateResult();
+                  break;
+              case "C":
+                  clearInput();
+                  break;
+              default:
+                  handleInput(buttonText);
+                  break;
+          }
+      }
+      private void handleInput(String input) {
+          if (isNewInput) {
+              currentInput = input;
+              isNewInput = false;
+          } else {
+              currentInput += input;
+          }
+          updateDisplay();
+      }
+      private void clearInput() {
+          currentInput = "";
+          operator = "";
+          firstOperand = 0;
+          secondOperand = 0;
+          isNewInput = true;
+          updateDisplay();
+      }
+      @TargetApi(Build.VERSION_CODES.KITKAT)
+      @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+      private void calculateResult() {
+          if (!isNewInput) {
+              String expression = currentInput;
+              try {
+                  // Use JavaScript eval() to evaluate the expression
+                  WebView webView = new WebView(this);
+                  webView.getSettings().setJavaScriptEnabled(true);
+                  webView.addJavascriptInterface(new Object() {
+                      @JavascriptInterface
+                      public void processHTML(String html) {
+                          // Process the result returned from JavaScript
+                          currentInput = html;
+                          isNewInput = true;
+                          updateDisplay();
+                      }
+                  }, "Android");
+                  webView.evaluateJavascript("javascript:Android.processHTML(eval('" + expression + "'))", null);
+              } catch (Exception e) {
+                  currentInput = "Error: Invalid expression";
+                  isNewInput = true;
+                  updateDisplay();
+              }
+          }
+      }
+  
+      /**
+       *
+       */
+      private void updateDisplay() {
+          textView.setText(currentInput);
+      }
+  }
+
+  XML CODE2:
+    <?xml version="1.0" encoding="utf-8"?>
+  <LinearLayout
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical"
+      android:padding="16dp"
+      tools:context=".MainActivity">
+  
+      <TextView
+          android:id="@+id/usernameTextView"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="welcome"
+          android:textSize="16sp" />
+      <TextView
+          android:id="@+id/emailTextView"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="welcome"
+          android:textSize="16sp" />
+  </LinearLayout>
+
+  JAVA CODE2:
+    import android.content.SharedPreferences;
+  import android.support.v7.app.AppCompatActivity;
+  import android.os.Bundle;
+  import android.widget.TextView;
+  
+  public class Main2Activity extends AppCompatActivity {
+  
+      String username, email, password;
+  
+      @Override
+      protected void onCreate(Bundle savedInstanceState) {
+          super.onCreate(savedInstanceState);
+          setContentView(R.layout.activity_main2);
+  
+          // Retrieve data from SharedPreferences
+          SharedPreferences preferences = getSharedPreferences("UserData", MODE_PRIVATE);
+          username = preferences.getString("username", "DefaultUsername");
+          email = preferences.getString("email", "DefaultEmail");
+          password = preferences.getString("password", "DefaultPassword");
+  
+          // Display the retrieved data in TextViews or perform any actions you need
+          TextView usernameTextView = findViewById(R.id.usernameTextView);
+          TextView emailTextView = findViewById(R.id.emailTextView);
+  
+          usernameTextView.setText("Username: " + username);
+          emailTextView.setText("Email: " + email);
+      }
+  }
